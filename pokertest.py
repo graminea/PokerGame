@@ -95,7 +95,9 @@ def deal_community_cards(deck, count=5):
 
 def play_game():
     deck = Deck()
-    
+    print()
+    print()
+    print()
     # Deal hands to two players
     player1_hand, player2_hand = deal_hands(deck)
     print("Player 1 Hand:", player1_hand)
@@ -104,7 +106,7 @@ def play_game():
     
     community_cards = deal_community_cards(deck)
     
-    print(f"Community Cards:, {community_cards[0]}, {community_cards[1]}, {community_cards[2]}")
+    print(f"Community Cards:, {community_cards}")
     
     # Combine hands with community cards
     player1_combined = player1_hand + community_cards
@@ -118,6 +120,10 @@ def play_game():
         print("Player 2 wins!")
     else:
         print("It's a tie!")
+    
+    print()
+    print()
+    print()
 
 # Play the game
 if __name__ == "__main__":
