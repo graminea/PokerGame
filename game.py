@@ -2,6 +2,7 @@ import random
 from card import Card
 from deck import Deck
 from player import Player
+from configuration import configuration
 
 class Game:
     special_hands = [
@@ -17,9 +18,9 @@ class Game:
         "High Card"
     ]
 
-    def __init__(self, players, starting_chips=1000):
+    def __init__(self, players, starting_chips):
         self.deck = Deck()
-        self.players = [Player(name, starting_chips, is_bot=(name == "Bot")) for name in players]
+        self.players = [Player(name, starting_chips, is_bot=(i == 1)) for i, name in enumerate(players)]
         self.community_cards = []
         self.pot = 0
         self.current_bet = 0
@@ -31,10 +32,9 @@ class Game:
         self.pot = 0
         self.current_bet = 0
         self.turn_index = 0
-        for player in self.players:
+        for player in self.players:  
             player.reset_for_new_round()
 
-    @staticmethod
     def evaluate_hand(hand):
         sorted_hand = sorted(hand, key=lambda card: Card.value_dict[card.value], reverse=True)
         values = [card.value for card in sorted_hand]
@@ -69,7 +69,6 @@ class Game:
 
         return "High Card", sorted_hand
 
-    @staticmethod
     def check_straight(values):
         num_values = sorted([Card.value_dict[v] for v in values])
         for i in range(len(num_values) - 4):
@@ -173,6 +172,7 @@ class Game:
 
 # Play the game
 if __name__ == "__main__":
-    player_names = ["You", "Bot"]
-    game = Game(player_names)
+    name, bot_name, chips = configuration()
+    player_names = [name, bot_name]
+    game = Game(player_names, chips)
     game.play_game()
