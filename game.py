@@ -4,6 +4,7 @@ from deck import Deck
 from player import Player
 from configuration import configuration
 
+
 class Game:
     special_hands = [
         "Royal Flush",
