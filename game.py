@@ -148,11 +148,11 @@ class Game:
         print(f"Community cards: {self.community_cards[:3]}")
         self.betting_round()
 
-        self.deal_community_cards(1)
-        print(f"Community cards: {self.community_cards[:4]}")
+        self.deal_community_cards(4)
+        print(f"Community cards: {self.community_cards}")
         self.betting_round()
 
-        self.deal_community_cards(1)
+        self.deal_community_cards(5)
         print(f"Community cards: {self.community_cards}")
         self.betting_round()
 
