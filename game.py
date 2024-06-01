@@ -3,7 +3,9 @@ from card import Card
 from deck import Deck
 from player import Player
 from configuration import configuration
+from colorama import Fore, Style, init
 
+init(autoreset=True)
 
 class Game:
     special_hands = [
@@ -33,9 +35,10 @@ class Game:
         self.pot = 0
         self.current_bet = 0
         self.turn_index = 0
-        for player in self.players:  
+        for player in self.players:
             player.reset_for_new_round()
 
+    @staticmethod
     def evaluate_hand(hand):
         sorted_hand = sorted(hand, key=lambda card: Card.value_dict[card.value], reverse=True)
         values = [card.value for card in sorted_hand]
@@ -70,6 +73,7 @@ class Game:
 
         return "High Card", sorted_hand
 
+    @staticmethod
     def check_straight(values):
         num_values = sorted([Card.value_dict[v] for v in values])
         for i in range(len(num_values) - 4):
@@ -83,8 +87,8 @@ class Game:
         rank1, sorted_hand1 = Game.evaluate_hand(hand1)
         rank2, sorted_hand2 = Game.evaluate_hand(hand2)
 
-        print(f"Player 1 Hand Type: {rank1}")
-        print(f"Player 2 Hand Type: {rank2}")
+        print(f"{Fore.GREEN}Tipo da mão do Jogador 1: {rank1}")
+        print(f"{Fore.BLUE}Tipo da mão do Jogador 2: {rank2}\n")
 
         if rank1 != rank2:
             return 1 if rank_order[rank1] < rank_order[rank2] else -1
@@ -106,72 +110,106 @@ class Game:
 
     def betting_round(self):
         active_players = [player for player in self.players if not player.folded]
+        first_round = True  # Flag to track the first round of betting
         while True:
-            current_player = active_players[self.turn_index]
-            if current_player.is_bot:
-                action = random.choice(['fold', 'call', 'raise'])
-                print(f"{current_player.name} chooses to {action}.")
-            else:
-                action = input(f"{current_player.name}, your current chips: {current_player.chips}, pot: {self.pot}. Do you want to fold, call, or raise? ").strip().lower()
-
-            if action == 'fold':
-                current_player.folded = True
-            elif action == 'call':
-                call_amount = self.current_bet - current_player.current_bet
-                current_player.bet(call_amount)
-                self.pot += call_amount
-            elif action == 'raise':
+            for i, current_player in enumerate(active_players):
                 if current_player.is_bot:
-                    raise_amount = random.randint(1, current_player.chips)
+                    action = random.choice(['fold', 'mesa', 'aumentar'])
+                    print(f"{Fore.YELLOW}{current_player.name} escolheu {action}.\n")
                 else:
-                    raise_amount = int(input("Enter the amount to raise: "))
-                current_player.bet(self.current_bet - current_player.current_bet + raise_amount)
-                self.current_bet += raise_amount
-                self.pot += self.current_bet - current_player.current_bet + raise_amount
+                    while True:
+                        if first_round:
+                            action = input(f"{Fore.CYAN}{current_player.name}, suas fichas atuais: {current_player.chips}, pote: {self.pot}. Escolha uma ação:\n1-Aumentar\n").strip()
+                            if action == '1':
+                                action = 'aumentar'
+                                break
+                            else:
+                                print(f"{Fore.RED}Opção inválida. Por favor, escolha 1 para aumentar.\n")
+                        else:
+                            action = input(f"{Fore.CYAN}{current_player.name}, suas fichas atuais: {current_player.chips}, pote: {self.pot}. Escolha uma ação:\n1-Aumentar\n2-Call\n3-Fold\n").strip()
+                            if action == '1':
+                                action = 'aumentar'
+                                break
+                            elif action == '2':
+                                action = 'call'
+                                break
+                            elif action == '3':
+                                action = 'fold'
+                                break
+                            else:
+                                print(f"{Fore.RED}Opção inválida. Por favor, escolha 1, 2 ou 3.\n")
 
-            self.turn_index = (self.turn_index + 1) % len(active_players)
+                if action == 'fold':
+                    current_player.folded = True
+                elif action == 'call':
+                    call_amount = self.current_bet - current_player.current_bet
+                    current_player.bet(call_amount)
+                    self.pot += call_amount
+                elif action == 'aumentar':
+                    if current_player.is_bot:
+                        raise_amount = random.randint(1, current_player.chips)
+                    else:
+                        while True:
+                            try:
+                                raise_amount = int(input("Digite o valor para aumentar: "))
+                                if raise_amount > current_player.chips:
+                                    print(f"{Fore.RED}Você não pode aumentar mais fichas do que possui.\n")
+                                else:
+                                    break
+                            except ValueError:
+                                print(f"{Fore.RED}Entrada inválida. Por favor, digite um número inteiro válido.\n")
+
+                    total_raise_amount = self.current_bet - current_player.current_bet + raise_amount
+                    if total_raise_amount > current_player.chips:
+                        print(f"{Fore.RED}Você não pode aumentar mais fichas do que possui.\n")
+                    else:
+                        current_player.bet(total_raise_amount)
+                        self.current_bet += raise_amount
+                        self.pot += total_raise_amount
 
             if all(player.current_bet == self.current_bet or player.folded for player in active_players):
                 break
 
+            active_players = [player for player in self.players if not player.folded]
+            first_round = False  # After the first round, set the flag to False
+
     def play_game(self):
-        self.reset_game()
+        while True:  # Loop until a player runs out of chips
+            self.reset_game()
 
-        self.deal_hands()
-        print("Dealing hands to players.")
-        for player in self.players:
-            print(f"{player.name}'s hand: {player.hand}")
+            self.deal_hands()
+            print(f"{Fore.MAGENTA}\nDistribuindo mãos para os jogadores.")
+            for player in self.players:
+                print(f"{Fore.CYAN}Mão de {player.name}: {player.hand}")
 
-        self.betting_round()
+            while True:  # Loop for each round of betting and dealing community cards
+                self.betting_round()
 
-        self.deal_community_cards(3)
-        print(f"Community cards: {self.community_cards[:3]}")
-        self.betting_round()
+                # Check if there's only one player left or if all players except one have folded
+                active_players = [player for player in self.players if not player.folded]
+                if len(active_players) == 1 or len(active_players) == 0:
+                    break
 
-        self.deal_community_cards(4)
-        print(f"Community cards: {self.community_cards}")
-        self.betting_round()
+                self.community_cards += [self.deck.deal() for _ in range(3)]
+                print(f"{Fore.MAGENTA}Cartas comunitárias: {self.community_cards[:3]}\n")
 
-        self.deal_community_cards(5)
-        print(f"Community cards: {self.community_cards}")
-        self.betting_round()
+            # Determine the winner of the round and award the pot
+            active_players = [player for player in self.players if not player.folded]
+            if len(active_players) == 1:
+                winner = active_players[0]
+                print(f"{Fore.GREEN}O vencedor é {winner.name}!\n")
+            else:
+                hands = [player.hand + self.community_cards for player in active_players]
+                best_hand_index = max(range(len(hands)), key=lambda i: self.evaluate_hand(hands[i]))
+                winner = active_players[best_hand_index]
+                print(f"{Fore.GREEN}O vencedor é {winner.name} com a mão {winner.hand + self.community_cards}!\n")
+            winner.chips += self.pot
 
-        active_players = [player for player in self.players if not player.folded]
-        hands = [player.hand + self.community_cards for player in active_players]
+            # Check if any player has run out of chips
+            if any(player.chips <= 0 for player in self.players):
+                break
 
-        if len(active_players) == 1:
-            winner = active_players[0]
-        else:
-            best_hand_index = 0
-            for i in range(1, len(hands)):
-                if self.compare_hands(hands[best_hand_index], hands[i]) < 0:
-                    best_hand_index = i
-            winner = active_players[best_hand_index]
 
-        print(f"The winner is {winner.name} with the hand {winner.hand + self.community_cards}!")
-        winner.chips += self.pot
-
-# Play the game
 if __name__ == "__main__":
     name, bot_name, chips = configuration()
     player_names = [name, bot_name]
