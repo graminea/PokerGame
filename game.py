@@ -15,7 +15,7 @@ class Game:
         "Quadra",
         "Full House",
         "Flush",
-        "Sequência",
+        "Straight",
         "Trinca",
         "Dois Pares",
         "Um Par",
@@ -122,7 +122,7 @@ class Game:
                 print(f"\n{Fore.LIGHTBLACK_EX}Aposta atual: {self.current_bet}\n")  # Show the current bet
 
                 if current_player.is_bot:
-                    action = random.choice(['aumentar','call','all-in'] if final_round else ['aumentar','call'])
+                    action = random.choice(['fold','call','aumentar','all-in'] if final_round else ['fold','call','aumentar'])
                     print(f"{Fore.YELLOW}{current_player.name} escolheu {action}.\n")
                 else:
                     if first_round:
@@ -140,18 +140,23 @@ class Game:
                         print(f"{Fore.CYAN}{current_player.name}, suas fichas atuais: {current_player.chips}, pote: {self.pot}.\n")
                         countdown(3)
                         print(f"{Fore.MAGENTA}Escolha uma ação:\n1-Aumentar\n2-Mesa\n3-Fold\n" + ("4-All-IN\n" if final_round else ""))
-                        action = input(f"{Fore.GREEN}Ação: ").strip()
-                        if action == '1':
-                            action = 'aumentar'
-                        elif action == '2':
-                            action = 'call'
-                        elif action == '3':
-                            action = 'fold'
-                        elif action == '4' and final_round:
-                            action = 'all-in'
-                        else:
-                            print(f"{Fore.RED}Opção inválida. Por favor, escolha 1, 2, 3" + (" ou 4\n" if final_round else "\n"))
-                            continue
+                        while True:
+                            action = input(f"{Fore.GREEN}Ação: ").strip()
+                            if action == '1':
+                                action = 'aumentar'
+                                break
+                            elif action == '2':
+                                action = 'call'
+                                break
+                            elif action == '3':
+                                action = 'fold'
+                                break
+                            elif action == '4' and final_round:
+                                action = 'all-in'
+                                break
+                            else:
+                                print(f"{Fore.RED}Opção inválida. Por favor, escolha 1, 2, 3" + (" ou 4\n" if final_round else "\n"))
+                                continue
 
                 if action == 'fold':
                     current_player.folded = True
@@ -247,6 +252,7 @@ class Game:
                 break
 
         print(f"{Fore.YELLOW}Fim do jogo! {winner.name} venceu o jogo com {winner.chips} fichas!")
+
 
 if __name__ == "__main__":
     name, bot_name, chips = configuration()
