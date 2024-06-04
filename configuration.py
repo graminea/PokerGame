@@ -3,7 +3,7 @@ from colorama import init, Fore, Style
 
 init(autoreset=True)
 
-'''
+
 def configuration():
     print(Fore.GREEN + '-------------------------------------------------------------------------------------------------------------------------------------------')
     print(Fore.YELLOW + Style.BRIGHT + "\nPokerGame\n")
@@ -51,7 +51,7 @@ def configuration():
                     print(Fore.MAGENTA + 'Valor mínimo: 500 fichas')
                     input_value = input(Fore.MAGENTA + "Digite a quantidade de fichas que você e o bot começarão: " + Fore.RESET)
                     try:
-                        chips = float(input_value)
+                        chips = int(input_value)
                         if chips <= 500:
                             print(Fore.RED + '\nValor mínimo de fichas é de 500\nTente novamente!\n')
                             countdown(1)
@@ -78,3 +78,4 @@ def configuration():
     bot_name = 'Bot'
     chips = 1000
     return name, bot_name, chips
+'''

@@ -9,9 +9,10 @@ class Player:
 
     def bet(self, amount):
         if amount > self.chips:
-            raise ValueError("Not enough chips to bet that amount")
+            return False, f"Você não pode apostar {amount} fichas. Você só tem {self.chips} fichas."
         self.chips -= amount
         self.current_bet += amount
+        return True, ""
 
     def reset_for_new_round(self):
         self.hand = []
