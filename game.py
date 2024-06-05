@@ -2,7 +2,6 @@ import random
 from card import Card
 from deck import Deck
 from player import Player
-from configuration import configuration
 from colorama import Fore, Style, init
 from countdown import countdown
 
@@ -28,7 +27,6 @@ class Game:
         self.community_cards = []
         self.pot = 0
         self.current_bet = 0
-        self.turn_index = 0
         self.counter_round = 0
 
     def reset_game(self):
@@ -36,14 +34,11 @@ class Game:
         self.community_cards = []
         self.pot = 0
         self.current_bet = 0
-        self.turn_index = 0
         
-        
-        self.counter_round
+        self.counter_round = 0
         for player in self.players:
             player.reset_for_new_round()
 
-    @staticmethod
     def evaluate_hand(hand):
         sorted_hand = sorted(hand, key=lambda card: Card.value_dict[card.value], reverse=True)
         values = [card.value for card in sorted_hand]
@@ -80,7 +75,7 @@ class Game:
 
     @staticmethod
     def check_straight(values):
-        num_values = sorted([Card.value_dict[v] for v in values])
+        num_values = sorted(set([Card.value_dict[v] for v in values]))
         for i in range(len(num_values) - 4):
             if num_values[i + 4] - num_values[i] == 4:
                 return True
@@ -92,20 +87,7 @@ class Game:
         rank1, sorted_hand1 = Game.evaluate_hand(hand1)
         rank2, sorted_hand2 = Game.evaluate_hand(hand2)
 
-        print(f"{Fore.GREEN}Tipo da mão de {self.players[0].name}: {rank1}")
-        print('oi')
-        print(f"{Fore.BLUE}Tipo da mão de {self.players[1].name}: {rank2}\n")
-
-        if rank1 != rank2:
-            return 1 if rank_order[rank1] < rank_order[rank2] else -1
-
-        for card1, card2 in zip(sorted_hand1, sorted_hand2):
-            if Card.value_dict[card1.value] > Card.value_dict[card2.value]:
-                return 1
-            elif Card.value_dict[card1.value] < Card.value_dict[card2.value]:
-                return -1
-
-        return 0
+        return rank1, rank2, sorted_hand1, sorted_hand2
 
     def deal_hands(self):
         for player in self.players:
@@ -122,13 +104,13 @@ class Game:
             new_active_players = []
             for current_player in active_players:
                 if current_player.folded:
-                    continue
+                    continue  # Skip folded players
 
                 print(f"\n{Fore.LIGHTBLACK_EX}Aposta atual: {self.current_bet}\n")  # Show the current bet
                 self.counter_round += 0.5
 
                 if current_player.is_bot:
-                    action = random.choice(['fold', 'call', 'aumentar', 'all-in'] if final_round else ['call', 'aumentar'])
+                    action = random.choice(['fold', 'call', 'aumentar', 'all-in'] if final_round else ['fold','call', 'aumentar'])
                     print(f"{Fore.YELLOW}{current_player.name} escolheu {action}.\n")
                 else:
                     if first_round:
@@ -145,6 +127,7 @@ class Game:
                     else:
                         while True:
                             print(f"{Fore.CYAN}{current_player.name}, suas fichas atuais: {current_player.chips}, pote: {self.pot}.\n")
+                            print(f'Sua mão:{current_player.hand}')
                             countdown(3)
                             print(f"{Fore.MAGENTA}Escolha uma ação:\n1-Aumentar\n2-Mesa\n3-Fold\n" + ("4-All-IN\n" if final_round else ""))
                             action = input(f"{Fore.GREEN}Ação: ").strip()
@@ -199,7 +182,7 @@ class Game:
                     all_in_amount = current_player.chips
                     current_player.bet(all_in_amount)
                     self.pot += all_in_amount
-                    print(f"{Fore.RED}{current_player.name} foi All-IN com {all_in_amount} fichas!\n")
+                    print(f"{Fore.RED}{current_player.name} foi All-IN com {all_in_amount} fichas!\n{Fore.RESET}")
 
                 if not current_player.folded:
                     new_active_players.append(current_player)
@@ -236,8 +219,8 @@ class Game:
             self.deal_hands()
             self.deal_community_cards(5)
             print(f"{Fore.MAGENTA}\nDistribuindo mãos para os jogadores.")
-            for player in self.players:
-                print(f"{Fore.CYAN}Mão de {player.name}: {player.hand}")
+           
+            print(f"{Fore.CYAN}Sua mão:{self.players[0].name}: {self.players[0].hand}")
 
             # Main game loop
             while True:
@@ -255,9 +238,17 @@ class Game:
                 print(f"{Fore.GREEN}O vencedor é {winner.name}!\n")
             else:
                 hands = [player.hand + self.community_cards for player in active_players]
-                best_hand_index = max(range(len(hands)), key=lambda i: self.compare_hands(hands[i], hands[0]))  # Compare hands correctly
+                hand_evaluations = [self.compare_hands(hands[i], hands[0]) for i in range(len(hands))]
+                best_hand_index = max(range(len(hands)), key=lambda i: hand_evaluations[i][0])
                 winner = active_players[best_hand_index]
-                print(f"{Fore.GREEN}O vencedor é {winner.name} com a mão {winner.hand + self.community_cards}!\n")
+
+                # Print the hand types correctly for each player
+                for i, player in enumerate(active_players):
+                    rank, _, _, _ = hand_evaluations[i]
+                    print(f"{Fore.WHITE}{Style.BRIGHT}Tipo da mão de {player.name}: {rank}")
+                    
+                print(f"{Fore.YELLOW}O vencedor é {winner.name} com a mão {winner.hand + self.community_cards}!\n")
+
             winner.chips += self.pot
 
             # Check if any player has run out of chips
@@ -266,9 +257,3 @@ class Game:
 
         print(f"{Fore.YELLOW}Fim do jogo! {winner.name} venceu o jogo com {winner.chips} fichas!")
 
-
-if __name__ == "__main__":
-    name, bot_name, chips = configuration()
-    player_names = [name, bot_name]
-    game = Game(player_names, chips)
-    game.play_game()

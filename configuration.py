@@ -3,7 +3,6 @@ from colorama import init, Fore, Style
 
 init(autoreset=True)
 
-
 def configuration():
     print(Fore.GREEN + '-------------------------------------------------------------------------------------------------------------------------------------------')
     print(Fore.YELLOW + Style.BRIGHT + "\nPokerGame\n")
@@ -71,11 +70,4 @@ def configuration():
     countdown(1)
     
     return name, bot_name, chips
-'''
 
-def configuration():
-    name = 'player1'
-    bot_name = 'Bot'
-    chips = 1000
-    return name, bot_name, chips
-'''
