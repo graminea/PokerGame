@@ -104,9 +104,9 @@ class Game:
             new_active_players = []
             for current_player in active_players:
                 if current_player.folded:
-                    continue  # Skip folded players
+                    continue  
 
-                print(f"\n{Fore.LIGHTBLACK_EX}Aposta atual: {self.current_bet}\n")  # Show the current bet
+                print(f"\n{Fore.LIGHTBLACK_EX}Aposta atual: {self.current_bet}\n")  
                 self.counter_round += 0.5
 
                 if current_player.is_bot:
@@ -195,25 +195,24 @@ class Game:
                     print(f"{Fore.LIGHTRED_EX}\nCartas comunitárias (River): {self.community_cards[:5]}\n")
 
                 if final_round:
-                    break  # Exit the loop if it's the final round
+                    break  
 
-            if len(new_active_players) == 1 or final_round:  # If only one player remains, end the round
+            if len(new_active_players) == 1 or final_round:  
                 break
 
             if all(player.current_bet == self.current_bet or player.folded for player in new_active_players):
                 break
 
             active_players = new_active_players
-            first_round = False  # After the first round, set the flag to False
-
+            first_round = False  
             if self.counter_round == 3 and not final_round:
                 final_round = True
-                break  # Exit the loop to handle the final round outside
+                break  
 
 
 
     def play_game(self):
-        while True:  # Loop until a player runs out of chips
+        while True:  
             self.reset_game()
 
             self.deal_hands()
@@ -232,7 +231,7 @@ class Game:
                 if len(active_players) <= 1 or final_round:
                     break
 
-            # Determine the winner of the round and award the pot
+            
             if len(active_players) == 1:
                 winner = active_players[0]
                 print(f"{Fore.GREEN}O vencedor é {winner.name}!\n")
@@ -242,7 +241,7 @@ class Game:
                 best_hand_index = max(range(len(hands)), key=lambda i: hand_evaluations[i][0])
                 winner = active_players[best_hand_index]
 
-                # Print the hand types correctly for each player
+            
                 for i, player in enumerate(active_players):
                     rank, _, _, _ = hand_evaluations[i]
                     print(f"{Fore.WHITE}{Style.BRIGHT}Tipo da mão de {player.name}: {rank}")
@@ -251,7 +250,7 @@ class Game:
 
             winner.chips += self.pot
 
-            # Check if any player has run out of chips
+            
             if any(player.chips <= 0 for player in self.players):
                 break
 
