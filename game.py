@@ -219,7 +219,7 @@ class Game:
             self.deal_community_cards(5)
             print(f"{Fore.MAGENTA}\nDistribuindo mãos para os jogadores.")
            
-            print(f"{Fore.CYAN}Sua mão:{self.players[0].name}: {self.players[0].hand}")
+            print(f"{Fore.CYAN}{self.players[0],name} || Sua mão: {self.players[0].hand}")
 
             # Main game loop
             while True:
